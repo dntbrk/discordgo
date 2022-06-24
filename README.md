@@ -4,6 +4,9 @@
 
 <img align="right" alt="DiscordGo logo" src="docs/img/discordgo.svg" width="400">
 
+***This a fork that passes along raw JSON information to event handlers.***  
+*(Yes, I could just tie into the raw event handler, but this way keeps my code neat.)*  
+
 DiscordGo is a [Go](https://golang.org/) package that provides low level 
 bindings to the [Discord](https://discord.com/) chat client API. DiscordGo 
 has nearly complete support for all of the Discord API endpoints, websocket

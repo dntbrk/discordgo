@@ -1,5 +1,7 @@
 package discordgo
 
+import "encoding/json"
+
 // EventHandler is an interface for Discord events.
 type EventHandler interface {
 	// Type returns the type of event this handler belongs to.
@@ -8,7 +10,7 @@ type EventHandler interface {
 	// Handle is called whenever an event of Type() happens.
 	// It is the receivers responsibility to type assert that the interface
 	// is the expected struct.
-	Handle(*Session, interface{})
+	Handle(*Session, interface{}, *json.RawMessage)
 }
 
 // EventInterfaceProvider is an interface for providing empty interfaces for
@@ -163,21 +165,21 @@ func (s *Session) removeEventHandlerInstance(t string, ehi *eventHandlerInstance
 }
 
 // Handles calling permanent and once handlers for an event type.
-func (s *Session) handle(t string, i interface{}) {
+func (s *Session) handle(t string, i interface{}, j *json.RawMessage) {
 	for _, eh := range s.handlers[t] {
 		if s.SyncEvents {
-			eh.eventHandler.Handle(s, i)
+			eh.eventHandler.Handle(s, i, j)
 		} else {
-			go eh.eventHandler.Handle(s, i)
+			go eh.eventHandler.Handle(s, i, j)
 		}
 	}
 
 	if len(s.onceHandlers[t]) > 0 {
 		for _, eh := range s.onceHandlers[t] {
 			if s.SyncEvents {
-				eh.eventHandler.Handle(s, i)
+				eh.eventHandler.Handle(s, i, j)
 			} else {
-				go eh.eventHandler.Handle(s, i)
+				go eh.eventHandler.Handle(s, i, j)
 			}
 		}
 		s.onceHandlers[t] = nil
@@ -186,7 +188,7 @@ func (s *Session) handle(t string, i interface{}) {
 
 // Handles an event type by calling internal methods, firing handlers and firing the
 // interface{} event.
-func (s *Session) handleEvent(t string, i interface{}) {
+func (s *Session) handleEvent(t string, i interface{}, j *json.RawMessage) {
 	s.handlersMu.RLock()
 	defer s.handlersMu.RUnlock()
 
@@ -194,10 +196,10 @@ func (s *Session) handleEvent(t string, i interface{}) {
 	s.onInterface(i)
 
 	// Then they are dispatched to anyone handling interface{} events.
-	s.handle(interfaceEventType, i)
+	s.handle(interfaceEventType, i, j)
 
 	// Finally they are dispatched to any typed handlers.
-	s.handle(t, i)
+	s.handle(t, i, j)
 }
 
 // setGuildIds will set the GuildID on all the members of a guild.

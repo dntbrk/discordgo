@@ -183,7 +183,7 @@ func (s *Session) Open() error {
 	s.log(LogInformational, "First Packet:\n%#v\n", e)
 
 	s.log(LogInformational, "We are now connected to Discord, emitting connect event")
-	s.handleEvent(connectEventType, &Connect{})
+	s.handleEvent(connectEventType, &Connect{}, nil)
 
 	// A VoiceConnections map is a hard requirement for Voice.
 	// XXX: can this be moved to when opening a voice connection?
@@ -625,13 +625,13 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 		// it's better to pass along what we received than nothing at all.
 		// TODO: Think about that decision :)
 		// Either way, READY events must fire, even with errors.
-		s.handleEvent(e.Type, e.Struct)
+		s.handleEvent(e.Type, e.Struct, &e.RawData)
 	} else {
 		s.log(LogWarning, "unknown event: Op: %d, Seq: %d, Type: %s, Data: %s", e.Operation, e.Sequence, e.Type, string(e.RawData))
 	}
 
 	// For legacy reasons, we send the raw event also, this could be useful for handling unknown events.
-	s.handleEvent(eventEventType, e)
+	s.handleEvent(eventEventType, e, &e.RawData)
 
 	return e, nil
 }
@@ -939,7 +939,7 @@ func (s *Session) CloseWithCode(closeCode int) (err error) {
 	s.Unlock()
 
 	s.log(LogInformational, "emit disconnect event")
-	s.handleEvent(disconnectEventType, &Disconnect{})
+	s.handleEvent(disconnectEventType, &Disconnect{}, nil)
 
 	return
 }
