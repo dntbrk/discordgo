@@ -29,7 +29,7 @@ type EventInterfaceProvider interface {
 const interfaceEventType = "__INTERFACE__"
 
 // interfaceEventHandler is an event handler for interface{} events.
-type interfaceEventHandler func(*Session, interface{})
+type interfaceEventHandler func(*Session, interface{}, *json.RawMessage)
 
 // Type returns the event type for interface{} events.
 func (eh interfaceEventHandler) Type() string {
@@ -37,8 +37,8 @@ func (eh interfaceEventHandler) Type() string {
 }
 
 // Handle is the handler for an interface{} event.
-func (eh interfaceEventHandler) Handle(s *Session, i interface{}) {
-	eh(s, i)
+func (eh interfaceEventHandler) Handle(s *Session, i interface{}, j *json.RawMessage) {
+	eh(s, i, j)
 }
 
 var registeredInterfaceProviders = map[string]EventInterfaceProvider{}
